@@ -1,0 +1,219 @@
+---
+title: "final"
+output: html_document
+---
+```{r}
+library(readxl)
+ag <- read_excel("D:/0-washu/fall2020/Machine Learning Tools for Prediction of Business Outcomes/project/Training Data for Ag Project.xlsx")
+attach(ag)
+ag=na.omit(ag)
+target = read_excel("D:/0-washu/fall2020/Machine Learning Tools for Prediction of Business Outcomes/project/Evaluation dataset for Ag Project.xlsx")
+```
+
+```{r}
+summary(ag)
+table(Genetics)
+table(Variety)
+```
+```{r}
+v102=ag[ag$Variety=="V102",]
+v102$Genetics=as.factor(v102$Genetics)
+v102$Variety=as.factor(v102$Variety)
+
+v103=ag[ag$Variety=="V103",]
+summary(v102)
+pairs(v102)
+str(ag)
+```
+1.1
+```{r}
+plot(ag$Longitude,ag$Latitude)
+points(target$Longitude,target$Latitude,col="red",pch=19)
+```
+```{r}
+install.packages(c("factoextra","cluster","tidyverse"))
+```
+
+```{r}
+library(factoextra)
+library(cluster)
+library(tidyverse)
+set.seed(1)
+loc=cbind(ag$Latitude,ag$Longitude)
+wss=function(k){
+  kmeans(loc,k,nstart = 10)$tot.withinss
+}
+k.values=2:100
+wss.values=map_dbl(k.values,wss)
+plot(k.values,wss.values,type="b")
+# use k=20 to do the clustering
+```
+
+```{r}
+km.out=kmeans(loc,20,nstart=20)
+
+km.out
+loc_cluster=cbind(km.out$cluster,loc)
+
+```
+
+1.2
+```{r}
+# view the frequency of the varieties
+variety.freq=table(ag$Variety)
+
+# put the table into dataframe
+variety.freq=data.frame(variety.freq)
+# find the varieties with frequency less than 25
+Var.50=variety.freq[variety.freq$Freq<50,]$Var1
+
+# notice that V3 is one of the found varieties whose freq is smaller than 50, so we can use this factor to represent all varieties that appear less than 25 times
+# change the variety attribute to V3
+for (i in 1:length(Var.50)) {
+  ag[(ag$Variety == Var.50[i]),]$Variety="V3"
+}
+# view the new frequency of the varieties again, and we notice that there's no variety with freq less than 25 and meanwhile, the freq of V3 is 533, which is apparently the sum of all found varieties with freq < 25
+table(ag$Variety)
+
+
+```
+1.3
+```{r}
+# use the new data set and look at the distribution of each variety (tabelau)
+write.table(ag,"ag1.csv",row.names=FALSE,col.names=TRUE,sep=",")
+summary(ag)
+ag$Variety=as.factor(ag$Variety)
+summary(ag)
+
+plot(ag$Variety,ag$Location)
+# from the graphic, we notice that there exist patterns for different varieties
+```
+1.4
+```{r}
+loc_wea=ag[,c(2,13,14,19:42)]
+cor(loc_wea)
+# the correlation value between Location and Temp_04/05/06/08/09/median > 0.7, indicating a  relatively strong relationship between
+
+plot(loc_wea$Location,loc_wea$Temp_04)
+plot(loc_wea$Location,loc_wea$Temp_05)
+plot(loc_wea$Location,loc_wea$Temp_06)
+plot(loc_wea$Location,loc_wea$Temp_08)
+plot(loc_wea$Location,loc_wea$Temp_09)
+plot(loc_wea$Location,loc_wea$Median_Temp)
+
+
+boxplot(loc_wea$Temp_04~loc_wea$Location)
+boxplot(loc_wea$Location,loc_wea$Temp_05)
+boxplot(loc_wea$Location,loc_wea$Temp_06)
+boxplot(loc_wea$Location,loc_wea$Temp_08)
+boxplot(loc_wea$Location~loc_wea$Temp_09)
+boxplot(loc_wea$Location~loc_wea$Median_Temp)
+?boxplot
+```
+1.5
+```{r}
+hist(ag$Variety_Yield)
+```
+2.1
+```{r}
+l=c("GrowingSeason","Location","Latitude","Longitude","Probability","RelativeMaturity25","Prob_IRR","Soil_Type","Temp_03","Temp_04","Temp_05","Temp_06","Temp_07","Temp_08","Temp_09","Median_Temp","Prec_03","Prec_04","Prec_05","Prec_06","Prec_07","Prec_08","Prec_09","Median_Prec","Rad_03","Rad_04","Rad_05","Rad_06","Rad_07","Rad_08","Rad_09","Median_Rad","Density","Acres","PH1","AWC1","Clay1","Silt1","Sand1","Sand2","Silt2","Clay2","PH2","CEC","CE","Variety_Yield","Variety")
+target=c("Variety_Yield")
+
+newdata=ag[l]
+
+newdata=newdata[complete.cases(newdata),]
+```
+
+Linear Regression
+```{r}
+for (variable in vector) {
+  
+}
+```
+
+
+
+
+```{r}
+g_1=ag[ag$Variety==ag$Variety[1],]
+ag$Genetics=as.factor(ag$Genetics)
+ag$RelativeMaturity=as.factor(ag$RelativeMaturity)
+summary(ag)
+set.seed(1)
+train = sample(1:nrow(ag_1),nrow(ag_1)/2)
+ag_1.test=test.ag_1$Variety_Yield
+
+lm.fit=lm(Variety_Yield~GrowingSeason+Location+Latitude+Longitude+Probability+RelativeMaturity25+Prob_IRR+Soil_Type+Temp_03+Temp_04+Temp_05+Temp_06+Temp_07+Temp_08+Temp_09+Median_Temp+Prec_03+Prec_04+Prec_05+Prec_06+Prec_07+Prec_08+Prec_09+Median_Prec+Rad_03+Rad_04+Rad_05+Rad_06+Rad_07+Rad_08+Rad_09+Median_Rad+Density+Acres+PH1+AWC1+Clay1+Silt1+Sand1+Sand2+Silt2+Clay2+PH2+CEC+CE,data=train.ag_1) 
+
+summary(lm.fit)
+pred.test=predict.lm(lm.fit,ag_1.test[,l])
+
+l=c("GrowingSeason","Location","Latitude","Longitude","Probability","RelativeMaturity25","Prob_IRR","Soil_Type","Temp_03","Temp_04","Temp_05","Temp_06","Temp_07","Temp_08","Temp_09","Median_Temp","Prec_03","Prec_04","Prec_05","Prec_06","Prec_07","Prec_08","Prec_09","Median_Prec","Rad_03","Rad_04","Rad_05","Rad_06","Rad_07","Rad_08","Rad_09","Median_Rad","Density","Acres","PH1","AWC1","Clay1","Silt1","Sand1","Sand2","Silt2","Clay2","PH2","CEC","CE")
+ag_1[,l]
+
+train.ag_1[1,]
+
+
+
+
+for (i in length(unique(ag$Variety))){
+  variety=unique(ag$Variety)[i]
+  ag.temp=ag[ag$Variety==unique(ag$Variety)[i],]
+  
+}
+
+```
+
+
+
+
+
+
+
+
+```{r}
+install.packages(c("cowplot", "googleway", "ggplot2", "ggrepel", 
+"ggspatial", "libwgeom", "sf", "rnaturalearth", "rnaturalearthdata"))
+install.packages("rgeos")
+```
+```{r}
+library(ggplot2)
+library(sf)
+library(rnaturalearth)
+library(rnaturalearthdata)
+# load data
+world <- ne_countries(scale = "medium", returnclass = "sf")
+# gene world map
+ggplot(data = world) +
+  geom_sf() +
+  labs( x = "Longitude", y = "Latitude") +
+  ggtitle("World map", subtitle = paste0("(", length(unique(world$admin)), " countries)"))
+```
+```{r}
+library(rgeos)
+library(ggspatial)
+# gene world map
+worldmap=
+ggplot(data = world) +
+  geom_sf() +
+  labs( x = "Longitude", y = "Latitude") +
+  coord_sf(xlim = c(-140.00, -50.00), ylim = c(20.00, 50.00), expand = FALSE) +
+  annotation_scale(location = "bl", width_hint = 0.5) +
+  annotation_north_arrow(location = "bl", which_north = "true", 
+                         pad_x = unit(0.75, "in"), pad_y = unit(0.5, "in"),
+                         style = north_arrow_fancy_orienteering) +
+  theme_bw()
+
+points(ag$Longitude,ag$Latitude,col = "red", cex = .01)
+?plot()
+```
+```{r}
+plot(worldmap, xlim = c(-140.00, -50.00), ylim = c(20.00, 50.00), 
+     asp = 1, bg = "lightblue", col = "black", fill = T,add=TRUE)
+points(ag$Longitude, ag$Latitude, 
+       col = "red", cex = .01)
+?plot.xy()
+```
+
+
+
